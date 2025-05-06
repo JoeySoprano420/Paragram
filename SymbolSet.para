@@ -1,0 +1,21 @@
+Symbol	Meaning
+.	Access / Chain
+:	Declare / Define
+;	End / Yield / Drop
+!	Execute / Force / Trigger
+?	Query / Conditional / Check
+=	Assign
+@	Address / Entry / Anchor
+#	Constant / Value / Token
+%	Register / Stack / MemRef
+$	Runtime / Dynamic / Env call
+>	Flow / Then / Transition
+<	Pull / Input / Source
+`	`
+&	And / Link / Bind
+~	Match / Approx / Fuse
+/	Path / Type / Case
+^	Lift / Function / Delegate
+{}	Unsafe / Native / Inline
+[]	Table / Range / Array
+()	Scope / Parameters / Logic
