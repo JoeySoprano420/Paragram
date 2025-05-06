@@ -1590,3 +1590,184 @@ public:
         plugins.expandMacro(node->debug(), emitter, node->args);
     }
 };
+
+int main(int argc, char** argv) {
+    if (argc < 2) {
+        ErrorReporter::report("Usage: parac <file.para>");
+        return 1;
+    }
+
+    std::string code = loadFile(argv[1]);
+    Lexer lexer;
+    std::vector<Token> tokens;
+
+    try {
+        tokens = lexer.tokenize(code);
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Lexer error: " + std::string(e.what()));
+        return 1;
+    }
+
+    Parser parser(tokens);
+    ASTNode* parsedProgram = nullptr;
+
+    try {
+        parsedProgram = parser.parseProgram();
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Parser error: " + std::string(e.what()));
+        return 1;
+    }
+
+    // Load plugins and macros
+    PluginManager pluginManager;
+    pluginManager.loadFromSheets("./sheets");
+
+    // Injected macro call
+    ASTNode* injectedMacro = new ASTMacro("log_add", {"5", "10"});
+
+    // Emit both programs
+    NASMEmitter emitter;
+    emitter.open("out.asm");
+
+    emitter.emit("; --- Parsed Program ---");
+    parsedProgram->compile(emitter);
+
+    emitter.emit("; --- Injected Macro ---");
+    injectedMacro->compile(emitter);
+
+    emitter.saveTo("out.asm");
+
+    ExecutionScheduler scheduler;
+    scheduler.scheduleTask({10, [&]() {
+        parsedProgram->compile(emitter);
+        injectedMacro->compile(emitter);
+    }});
+    scheduler.executeTasks();
+
+    return 0;
+}
+
+#include <chrono>
+
+int main(int argc, char** argv) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    if (argc < 2) {
+        ErrorReporter::report("Usage: parac <file.para>");
+        return 1;
+    }
+
+    std::string code = loadFile(argv[1]);
+    Lexer lexer;
+    std::vector<Token> tokens;
+
+    try {
+        tokens = lexer.tokenize(code);
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Lexer error: " + std::string(e.what()));
+        return 1;
+    }
+
+    Parser parser(tokens);
+    ASTNode* parsedProgram = nullptr;
+
+    try {
+        parsedProgram = parser.parseProgram();
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Parser error: " + std::string(e.what()));
+        return 1;
+    }
+
+    PluginManager pluginManager;
+    pluginManager.loadFromSheets("./sheets");
+
+    ASTNode* injectedMacro = new ASTMacro("log_add", {"5", "10"});
+
+    NASMEmitter emitter;
+    emitter.open("out.asm");
+
+    emitter.emit("; --- Parsed Program ---");
+    parsedProgram->compile(emitter
+
+// --------------------------------------------
+// AUGMENTED MAIN FUNCTION WITH CLI FLAG + STATS
+// --------------------------------------------
+
+#include <chrono>
+
+int runCompiler(int argc, char** argv) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    bool injectMacro = false;
+    std::string filename;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--inject") {
+            injectMacro = true;
+        } else {
+            filename = arg;
+        }
+    }
+
+    if (filename.empty()) {
+        ErrorReporter::report("Usage: parac <file.para> [--inject]");
+        return 1;
+    }
+
+    std::string code = loadFile(filename);
+    Lexer lexer;
+    std::vector<Token> tokens;
+
+    try {
+        tokens = lexer.tokenize(code);
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Lexer error: " + std::string(e.what()));
+        return 1;
+    }
+
+    Parser parser(tokens);
+    ASTNode* parsedProgram = nullptr;
+
+    try {
+        parsedProgram = parser.parseProgram();
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Parser error: " + std::string(e.what()));
+        return 1;
+    }
+
+    PluginManager pluginManager;
+    pluginManager.loadFromSheets("./sheets");
+
+    NASMEmitter emitter;
+    emitter.open("out.asm");
+
+    emitter.emit("; --- Parsed Program ---");
+    parsedProgram->compile(emitter);
+
+    ASTNode* injectedMacro = nullptr;
+    if (injectMacro) {
+        emitter.emit("; --- Injected Macro log_add(5, 10) ---");
+        injectedMacro = new ASTMacro("log_add", {"5", "10"});
+        injectedMacro->compile(emitter);
+    }
+
+    emitter.saveTo("out.asm");
+
+    ExecutionScheduler scheduler;
+    scheduler.scheduleTask({10, [&]() {
+        parsedProgram->compile(emitter);
+        if (injectedMacro) injectedMacro->compile(emitter);
+    }});
+    scheduler.executeTasks();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "[INFO] Compilation completed in " << duration.count() << " seconds." << std::endl;
+
+    return 0;
+}
+
+int main(int argc, char** argv) {
+    return runCompiler(argc, argv);
+}
