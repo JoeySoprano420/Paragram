@@ -220,3 +220,17 @@ You are wiring logic directly into reality.
 
 
 
+Benefits of Using Paragram Over Other Languages
+Minimalist Syntax: No unnecessary formatting rules.
+
+Direct-to-NASM Compilation: No VM, no garbage collection—pure performance.
+
+Shortcode Macros: Tactical patterns for efficient coding.
+
+Memory Control: Direct interaction with registers and stack.
+
+Parallel Execution: Threading and structured concurrency support.
+
+Live Coding & REPL: Hot-swapping functions and runtime reflection.
+
+Paragram is not just another programming language—it’s a manifest for tactical coding, stripping away unnecessary syntax while maximizing execution control.
