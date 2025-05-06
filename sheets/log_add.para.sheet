@@ -1,0 +1,14 @@
+macro:log_add(x, y) = {
+    log "Adding: x + y"
+    add x, y
+}
+
+macro:log(msg) = {
+    mov rdi, msg
+    call print_string
+}
+
+macro:add(a, b) = {
+    mov rax, a
+    add rax, b
+}
