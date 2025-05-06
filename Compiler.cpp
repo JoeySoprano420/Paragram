@@ -1320,3 +1320,273 @@ int main(int argc, char** argv) {
 }
 
 
+class MacroPreprocessor {
+    PluginManager& plugins;
+
+public:
+    MacroPreprocessor(PluginManager& p) : plugins(p) {}
+
+    ASTNode* expand(const std::string& macroName, const std::vector<std::string>& args) {
+        return new ASTMacro(macroName, args); // Simplified - inject full AST expansion here
+    }
+
+    bool isMacro(const std::string& name) {
+        return plugins.hasPlugin(name);
+    }
+
+    void apply(ASTNode* node, NASMEmitter& emitter) {
+        if (auto macro = dynamic_cast<ASTMacro*>(node)) {
+            plugins.invokePlugin(macro->debug(), emitter, macro->args); // direct macro expand
+        } else {
+            node->compile(emitter);
+        }
+    }
+};
+// --------------------------------------------
+// PARAGRAM COMPILER SCAFFOLD (Extended + Plugins + YAML + Macro DSL)
+// --------------------------------------------
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <thread>
+#include <queue>
+#include <functional>
+#include <unordered_map>
+#include <sstream>
+#include <mutex>
+#include <optional>
+#include <variant>
+#include <map>
+#include <stdexcept>
+#include <filesystem>
+#include <yaml-cpp/yaml.h> // Requires yaml-cpp
+
+namespace fs = std::filesystem;
+
+// -----------------------------
+// MACRO DEFINITION STRUCTURE
+// -----------------------------
+
+struct MacroDefinition {
+    std::vector<std::string> args;
+    std::vector<std::string> body;
+};
+
+// -----------------------------
+// EXTENDED PLUGIN MANAGER
+// -----------------------------
+
+class PluginManager {
+    std::unordered_map<std::string, MacroDefinition> macros;
+
+public:
+    void registerMacro(const std::string& name, const MacroDefinition& macro) {
+        macros[name] = macro;
+    }
+
+    bool hasMacro(const std::string& name) const {
+        return macros.find(name) != macros.end();
+    }
+
+    void expandMacro(const std::string& name, NASMEmitter& emitter, const std::vector<std::string>& args) const {
+        auto it = macros.find(name);
+        if (it != macros.end()) {
+            const MacroDefinition& def = it->second;
+            for (const auto& line : def.body) {
+                std::string expanded = line;
+                for (size_t i = 0; i < def.args.size(); ++i) {
+                    size_t pos = expanded.find(def.args[i]);
+                    if (pos != std::string::npos && i < args.size()) {
+                        expanded.replace(pos, def.args[i].length(), args[i]);
+                    }
+                }
+                emitter.emit("; [Macro:" + name + "] " + expanded);
+            }
+        } else {
+            ErrorReporter::report("Macro not found: " + name);
+        }
+    }
+
+    void loadFromSheets(const std::string& directory) {
+        for (const auto& entry : fs::directory_iterator(directory)) {
+            if (entry.path().extension() == ".sheet") {
+                try {
+                    YAML::Node doc = YAML::LoadFile(entry.path().string());
+                    std::string name = doc["name"].as<std::string>();
+                    std::vector<std::string> args = doc["args"].as<std::vector<std::string>>();
+                    std::vector<std::string> body = doc["body"].as<std::vector<std::string>>();
+                    registerMacro(name, {args, body});
+                } catch (const std::exception& e) {
+                    ErrorReporter::report("Failed to load sheet: " + std::string(e.what()));
+                }
+            }
+        }
+    }
+};
+
+// -----------------------------
+// MACRO PREPROCESSOR
+// -----------------------------
+
+class MacroPreprocessor {
+    PluginManager& plugins;
+public:
+    MacroPreprocessor(PluginManager& pm) : plugins(pm) {}
+
+    bool isMacro(const std::string& name) const {
+        return plugins.hasMacro(name);
+    }
+
+    void apply(ASTMacro* node, NASMEmitter& emitter) {
+        plugins.expandMacro(node->debug(), emitter, node->args);
+    }
+};
+// --------------------------------------------
+// PARAGRAM COMPILER SCAFFOLD (Extended + Plugins + YAML + Macro DSL + Recursive + Trace)
+// --------------------------------------------
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+#include <thread>
+#include <queue>
+#include <functional>
+#include <unordered_map>
+#include <sstream>
+#include <mutex>
+#include <optional>
+#include <variant>
+#include <map>
+#include <stdexcept>
+#include <filesystem>
+#include <yaml-cpp/yaml.h> // Requires yaml-cpp
+
+namespace fs = std::filesystem;
+
+// -----------------------------
+// MACRO DEFINITION STRUCTURE
+// -----------------------------
+
+struct MacroDefinition {
+    std::vector<std::string> args;
+    std::vector<std::string> body;
+};
+
+// -----------------------------
+// EXTENDED PLUGIN MANAGER
+// -----------------------------
+
+class PluginManager {
+    std::unordered_map<std::string, MacroDefinition> macros;
+    mutable std::ofstream traceFile;
+
+public:
+    PluginManager() {
+        traceFile.open("macro.trace", std::ios::out);
+    }
+
+    void registerMacro(const std::string& name, const MacroDefinition& macro) {
+        macros[name] = macro;
+    }
+
+    bool hasMacro(const std::string& name) const {
+        return macros.find(name) != macros.end();
+    }
+
+    void expandMacroRecursive(const std::string& name, NASMEmitter& emitter, const std::vector<std::string>& args, int depth = 0) const {
+        auto it = macros.find(name);
+        if (it != macros.end()) {
+            const MacroDefinition& def = it->second;
+            for (const auto& line : def.body) {
+                std::string expanded = line;
+                for (size_t i = 0; i < def.args.size(); ++i) {
+                    size_t pos = expanded.find(def.args[i]);
+                    if (pos != std::string::npos && i < args.size()) {
+                        expanded.replace(pos, def.args[i].length(), args[i]);
+                    }
+                }
+                traceFile << std::string(depth * 2, ' ') << "[Macro:" << name << "] " << expanded << "\n";
+                emitter.emit("; [Macro:" + name + "] " + expanded);
+
+                std::istringstream iss(expanded);
+                std::string firstToken;
+                iss >> firstToken;
+                if (hasMacro(firstToken)) {
+                    std::vector<std::string> nestedArgs;
+                    std::string arg;
+                    while (iss >> arg) nestedArgs.push_back(arg);
+                    expandMacroRecursive(firstToken, emitter, nestedArgs, depth + 1);
+                }
+            }
+        } else {
+            ErrorReporter::report("Macro not found: " + name);
+        }
+    }
+
+    void expandMacro(const std::string& name, NASMEmitter& emitter, const std::vector<std::string>& args) const {
+        expandMacroRecursive(name, emitter, args);
+    }
+
+    void loadFromSheets(const std::string& directory) {
+        for (const auto& entry : fs::directory_iterator(directory)) {
+            if (entry.path().extension() == ".sheet") {
+                try {
+                    YAML::Node doc = YAML::LoadFile(entry.path().string());
+                    std::string name = doc["name"].as<std::string>();
+                    std::vector<std::string> args = doc["args"].as<std::vector<std::string>>();
+                    std::vector<std::string> body = doc["body"].as<std::vector<std::string>>();
+                    registerMacro(name, {args, body});
+                } catch (const std::exception& e) {
+                    ErrorReporter::report("Failed to load YAML sheet: " + std::string(e.what()));
+                }
+            }
+            else if (entry.path().extension() == ".para.sheet") {
+                std::ifstream raw(entry.path());
+                if (raw) {
+                    std::string line;
+                    std::string macroName;
+                    std::vector<std::string> args, body;
+                    while (std::getline(raw, line)) {
+                        if (line.rfind("macro:", 0) == 0) {
+                            size_t nameStart = 6;
+                            size_t parenOpen = line.find('(', nameStart);
+                            size_t parenClose = line.find(')', parenOpen);
+                            macroName = line.substr(nameStart, parenOpen - nameStart);
+                            std::istringstream argStream(line.substr(parenOpen + 1, parenClose - parenOpen - 1));
+                            std::string arg;
+                            while (std::getline(argStream, arg, ',')) {
+                                args.push_back(arg);
+                            }
+                        } else if (!line.empty() && line != "{" && line != "}") {
+                            body.push_back(line);
+                        }
+                    }
+                    if (!macroName.empty()) {
+                        registerMacro(macroName, {args, body});
+                    }
+                }
+            }
+        }
+    }
+};
+
+// -----------------------------
+// MACRO PREPROCESSOR
+// -----------------------------
+
+class MacroPreprocessor {
+    PluginManager& plugins;
+public:
+    MacroPreprocessor(PluginManager& pm) : plugins(pm) {}
+
+    bool isMacro(const std::string& name) const {
+        return plugins.hasMacro(name);
+    }
+
+    void apply(ASTMacro* node, NASMEmitter& emitter) {
+        plugins.expandMacro(node->debug(), emitter, node->args);
+    }
+};
