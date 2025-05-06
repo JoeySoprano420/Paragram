@@ -12,6 +12,8 @@ class Lexer {
 public:
     std::vector<Token> tokenize(const std::string& code);
 };
+enum Type { IDENT, NUMBER, STRING, SYMBOL, KEYWORD, OPERATOR };
+
 
 class ASTNode {
 public:
@@ -26,6 +28,8 @@ public:
     ASTNode* parseStatement();
     ASTNode* parseExpression();
 };
+ASTNode* parseOperator();
+
 
 class NASMEmitter {
 public:
@@ -44,7 +48,13 @@ int main(int argc, char** argv) {
 
     NASMEmitter emitter;
     program->compile(emitter);
+    void NASMEmitter::emitAssignment(const std::string& var, const std::string& val) {
+    emit("mov " + var + ", " + val);
+    emit("add " + var + ", 1"); // Example optimization
+}
+
 
     emitter.saveTo("out.asm");
     return 0;
 }
+
