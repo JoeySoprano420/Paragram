@@ -1,0 +1,7 @@
+name: log
+description: Emits a log statement to NASM
+args: [msg]
+body:
+  - "; Log macro expansion"
+  - 'mov rdi, msg'
+  - 'call print_string'
