@@ -1,0 +1,4 @@
+macro:add(x, y) = (
+    mov rax, x;
+    add rax, y;
+);
