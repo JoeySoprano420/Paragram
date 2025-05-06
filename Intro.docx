@@ -1,0 +1,173 @@
+**Introducing: PARAGRAM**
+*A tactical, symbolic programming language of pure structure and supreme logic.*
+
+---
+
+### **I. PHILOSOPHY OF PARAGRAM**
+
+**Paragram** is the language where **symbolism is minimal, yet meaning is maximal.** Every character, token, or directive carries significant weight. The language is designed for **precision, predictive execution, panoptic logic, and linear-free control flow**. It is structurally flat, symbol-light, opcode-aware, and execution-agnostic.
+
+No indentation. No formatting rules. No fluff. Just **powerful logic** in its purest expressive shell.
+
+---
+
+### **II. SYMBOL SET (SIMPLIFIED)**
+
+| Symbol | Meaning                      |                        |
+| ------ | ---------------------------- | ---------------------- |
+| `.`    | Access / Chain               |                        |
+| `:`    | Declare / Define             |                        |
+| `;`    | End / Yield / Drop           |                        |
+| `!`    | Execute / Force / Trigger    |                        |
+| `?`    | Query / Conditional / Check  |                        |
+| `=`    | Assign                       |                        |
+| `@`    | Address / Entry / Anchor     |                        |
+| `#`    | Constant / Value / Token     |                        |
+| `%`    | Register / Stack / MemRef    |                        |
+| `$`    | Runtime / Dynamic / Env call |                        |
+| `>`    | Flow / Then / Transition     |                        |
+| `<`    | Pull / Input / Source        |                        |
+| \`     | \`                           | Pipe / Fork / Parallel |
+| `&`    | And / Link / Bind            |                        |
+| `~`    | Match / Approx / Fuse        |                        |
+| `/`    | Path / Type / Case           |                        |
+| `^`    | Lift / Function / Delegate   |                        |
+| `{}`   | Unsafe / Native / Inline     |                        |
+| `[]`   | Table / Range / Array        |                        |
+| `()`   | Scope / Parameters / Logic   |                        |
+
+---
+
+### **III. CORE STRUCTURE**
+
+#### **1. Entrypoint**
+
+```paragram
+@main : init;
+```
+
+#### **2. Declaration and Assignment**
+
+```paragram
+x : int = 10;
+msg : text = "Hello";
+```
+
+#### **3. Execution and Branch**
+
+```paragram
+? x > 9 > !print.msg;
+? x < 5 > !alert.low;
+```
+
+#### **4. Function Definition**
+
+```paragram
+^log(msg) = !print.msg;
+```
+
+#### **5. Looping**
+
+```paragram
+@loop : 0..10 > ^step(i) = !log("Step: " i);
+```
+
+#### **6. Memory Control**
+
+```paragram
+mem : aloc[64];
+%r : push.x; pop.y;
+```
+
+#### **7. Events & Threads**
+
+```paragram
+event:load > ^handle();
+thread:spawn > ^parallel();
+```
+
+---
+
+### **IV. SAMPLE PROGRAM (PARAGRAM)**
+
+```paragram
+@main:
+count : int = 0;
+limit : int = 10;
+
+^print_count() = !print.count;
+
+loop : 0..limit >
+^step(i) = (
+    count = i;
+    !print_count();
+);
+
+!exit;
+```
+
+---
+
+### **V. ADVANCED CONCEPTS SIMPLIFIED**
+
+* **Try/Catch**
+
+```paragram
+?danger > ^try() = (
+    run!risky();
+) | ^catch() = (
+    !log("Failure");
+);
+```
+
+* **Parallel Sync**
+
+```paragram
+task1 : ^do_x();  
+task2 : ^do_y();  
+| task1 & task2 > !merge();
+```
+
+* **Mode Selector**
+
+```paragram
+mode:logic;
+mode:async;
+```
+
+* **Runtime Calls**
+
+```paragram
+$data.fetch.url("https://");
+```
+
+---
+
+### **VI. COMPILE TARGET: x64 NASM**
+
+Every instruction in **Paragram** maps directly to a NASM snippet or macro expansion. You can imagine the compiled output from:
+
+```paragram
+x : int = 42;
+!print.x;
+```
+
+Would become:
+
+```nasm
+mov rax, 42
+call print_rax
+```
+
+---
+
+### **VII. OPTIONAL MODULE LOADING / DSL SHEETS**
+
+```paragram
+use:crypto;
+use:network;
+sheet:ai_base;
+```
+
+---
+
