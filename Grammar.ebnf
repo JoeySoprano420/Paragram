@@ -1,0 +1,51 @@
+# --------------------------------------------
+# PARAGRAM EBNF GRAMMAR SPECIFICATION
+# --------------------------------------------
+
+Program          ::= { Statement ";" } ;
+Statement        ::= Declaration
+                  | Assignment
+                  | FunctionDef
+                  | FunctionCall
+                  | Conditional
+                  | Loop
+                  | Event
+                  | Thread
+                  | MemoryOp
+                  | Directive ;
+
+Declaration      ::= Identifier ":" Type ;
+Assignment       ::= Identifier "=" Expression ;
+FunctionDef      ::= "^" Identifier "(" [ ParamList ] ")" "=" Block ;
+FunctionCall     ::= "!" Identifier [ "." Identifier ] [ "(" ArgList ")" ] ;
+Conditional      ::= "?" Expression ">" Statement [ "|" Statement ] ;
+Loop             ::= "loop" ":" Range ">" FunctionDef ;
+Event            ::= "event" ":" Identifier ">" FunctionCall ;
+Thread           ::= "thread" ":" "spawn" ">" FunctionCall ;
+MemoryOp         ::= Identifier ":" "aloc" "[" Number "]"
+                  | "%" Identifier ":" StackOp ;
+
+Directive        ::= "use" ":" Identifier
+                  | "sheet" ":" Identifier
+                  | "mode" ":" Identifier ;
+
+Expression       ::= Term { Operator Term } ;
+Term             ::= Identifier | Number | String | FunctionCall ;
+Operator         ::= "+" | "-" | "*" | "/" | ">" | "<" | "==" ;
+
+Range            ::= Number ".." Number ;
+Block            ::= "(" { Statement ";" } ")" ;
+ParamList        ::= Identifier { "," Identifier } ;
+ArgList          ::= Expression { "," Expression } ;
+
+Type             ::= "int" | "text" | "bool" | "float" | "void" ;
+StackOp          ::= "push" "." Identifier
+                  | "pop" "." Identifier ;
+
+Identifier       ::= Letter { Letter | Digit | "_" } ;
+Number           ::= Digit { Digit } ;
+String           ::= '"' { Character } '"' ;
+
+Letter           ::= "A".."Z" | "a".."z" ;
+Digit            ::= "0".."9" ;
+Character        ::= ? any printable character ? ;
