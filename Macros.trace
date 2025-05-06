@@ -1,0 +1,6 @@
+[Macro:log_add] log "Adding values"
+  [Macro:log] mov rdi, "Adding values"
+  [Macro:log] call print_string
+[Macro:log_add] add x, y
+  [Macro:add] mov rax, x
+  [Macro:add] add rax, y
