@@ -1,0 +1,16 @@
+{
+  "scopeName": "source.para",
+  "name": "Paragram",
+  "patterns": [
+    { "match": "\\b(loop|event|thread|spawn|aloc|push|pop|let|exit|print|use|sheet|mode|if|else|try|catch|fallback)\\b", "name": "keyword.control.para" },
+    { "match": "\\b(int|text|bool|float|void)\\b", "name": "storage.type.para" },
+    { "match": "[\\^@!$#%><=~|:;\\.]", "name": "keyword.operator.symbol.para" },
+    { "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b", "name": "variable.para" },
+    { "match": "\".*?\"", "name": "string.para" },
+    { "match": "\\d+", "name": "constant.numeric.para" },
+    { "match": "//.*$", "name": "comment.line.para" }
+  ],
+  "repository": {},
+  "fileTypes": ["para"],
+  "uuid": "fa3a9a50-c500-11ed-afa1-0242ac120002"
+}
