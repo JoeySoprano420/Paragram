@@ -6,7 +6,9 @@ Paragram is the language where symbolism is minimal, yet meaning is maximal. Eve
 No indentation. No formatting rules. No fluff. Just powerful logic in its purest expressive shell.
 
 
+**NOTE**
 
+Memory-Aware Error Handling: Since Paragram interacts directly with registers and stack memory, errors should be handled before memory operations to prevent corruption.
 
 
 ⟡ PARAGRAM ⟡
@@ -213,3 +215,8 @@ Paragram isn’t just a language—it's a manifest.
 Every token is a command. Every symbol is a signal.
 You are no longer writing code.
 You are wiring logic directly into reality.
+
+
+
+
+
