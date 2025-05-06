@@ -1,0 +1,4 @@
+@main:
+msg : text = "Booting Paragram!";
+!print.msg;
+!exit;
