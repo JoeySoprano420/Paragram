@@ -1,0 +1,17 @@
+macro:injectDominance(stage, target, condition) = {
+    // Injects a conditional fragment override
+    ShaderInject stage, target, condition
+}
+
+macro:overrideBlend(fragColor, overrideColor, amount) = {
+    mix fragColor, overrideColor, amount
+}
+
+macro:fragmentMask(mask, threshold) = {
+    if (mask < threshold) discard;
+}
+
+macro:bindTexture(unit, sampler) = {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, sampler);
+}
