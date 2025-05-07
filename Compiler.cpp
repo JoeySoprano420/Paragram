@@ -1771,3 +1771,148 @@ int runCompiler(int argc, char** argv) {
 int main(int argc, char** argv) {
     return runCompiler(argc, argv);
 }
+
+// --------------------------------------------
+// SUBVERSIVE SHADER DOMINANCE LIBRARY (SSDL)
+// --------------------------------------------
+
+namespace SSDL {
+
+struct ShaderLayer {
+    std::string stage;
+    std::string target;
+    std::string expression;
+    std::string generatedCode() const {
+        return "if (" + expression + ") { gl_FragColor = texture(" + target + ", uv); }";
+    }
+};
+
+class DominanceStack {
+    std::vector<ShaderLayer> stack;
+public:
+    void push(const ShaderLayer& layer) { stack.push_back(layer); }
+    void pop() { if (!stack.empty()) stack.pop_back(); }
+    std::string compile() const {
+        std::string result;
+        for (const auto& layer : stack) {
+            result += "// [SSDL] Injecting shader dominance
+";
+            result += layer.generatedCode() + "
+";
+        }
+        return result;
+    }
+};
+
+static DominanceStack shaderDominance;
+
+} // namespace SSDL
+
+// Macro interface support
+class ASTShaderInject : public ASTNode {
+    std::string stage, target, expression;
+public:
+    ASTShaderInject(std::string stg, std::string tgt, std::string expr)
+        : stage(std::move(stg)), target(std::move(tgt)), expression(std::move(expr)) {}
+    void compile(NASMEmitter& out) override {
+        SSDL::shaderDominance.push({stage, target, expression});
+        out.emit("; [SSDL] Shader Injected: " + stage);
+    }
+    std::string debug() const override {
+        return "ShaderInject(" + stage + ", " + target + ", " + expression + ")";
+    }
+};
+
+
+// AUGMENTED MAIN FUNCTION WITH CLI FLAG + STATS
+// --------------------------------------------
+
+#include <chrono>
+
+int runCompiler(int argc, char** argv) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    bool injectMacro = false;
+    std::string filename;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--inject") {
+            injectMacro = true;
+        } else {
+            filename = arg;
+        }
+    }
+
+    if (filename.empty()) {
+        ErrorReporter::report("Usage: parac <file.para> [--inject]");
+        return 1;
+    }
+
+    std::string code = loadFile(filename);
+    Lexer lexer;
+    std::vector<Token> tokens;
+
+    try {
+        tokens = lexer.tokenize(code);
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Lexer error: " + std::string(e.what()));
+        return 1;
+    }
+
+    Parser parser(tokens);
+    ASTNode* parsedProgram = nullptr;
+
+    try {
+        parsedProgram = parser.parseProgram();
+    } catch (const std::exception& e) {
+        ErrorReporter::report("Parser error: " + std::string(e.what()));
+        return 1;
+    }
+
+    PluginManager pluginManager;
+    pluginManager.loadFromSheets("./sheets");
+
+    NASMEmitter emitter;
+    emitter.open("out.asm");
+
+    // Emit stub for print_string to make macro runtime valid
+    emitter.emit("; --- Runtime Stub: print_string ---");
+    emitter.emit("print_string:");
+    emitter.emit("    push rbp");
+    emitter.emit("    mov rsi, rdi");
+    emitter.emit("    call puts");
+    emitter.emit("    pop rbp");
+    emitter.emit("    ret");
+    emitter.emit("");
+
+    emitter.emit("; --- Parsed Program ---");
+    parsedProgram->compile(emitter);
+
+    ASTNode* injectedMacro = nullptr;
+    if (injectMacro) {
+        emitter.emit("; --- Injected Macro log_add(5, 10) ---");
+        injectedMacro = new ASTMacro("log_add", {"5", "10"});
+        injectedMacro->compile(emitter);
+    }
+
+    emitter.saveTo("out.asm");
+
+    ExecutionScheduler scheduler;
+    scheduler.scheduleTask({10, [&]() {
+        parsedProgram->compile(emitter);
+        if (injectedMacro) injectedMacro->compile(emitter);
+    }});
+    scheduler.executeTasks();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "[INFO] Compilation completed in " << duration.count() << " seconds." << std::endl;
+
+    return 0;
+}
+
+int main(int argc, char** argv) {
+    return runCompiler(argc, argv);
+}
+
